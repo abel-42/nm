@@ -1,0 +1,9 @@
+_ITM_deregisterTMCloneTable
+_ITM_registerTMCloneTable
+__GNU_EH_FRAME_HDR
+__bss_start
+__data_start
+__gmon_start__
+_edata
+_end
+data_start

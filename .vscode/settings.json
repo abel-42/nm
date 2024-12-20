@@ -1,0 +1,16 @@
+{
+	"files.associations": {
+		"__config": "c",
+		"locale": "c",
+		"atomic": "c",
+		"sstream": "c",
+		"lib.h": "c",
+		"array": "c",
+		"span": "c",
+		"string": "c",
+		"string_view": "c",
+		"vector": "c",
+		"fcntl.h": "c",
+		"unistd.h": "c"
+	}
+}
