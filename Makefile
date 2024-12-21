@@ -24,7 +24,7 @@ DFLAGS = -g3 -fsanitize=address
 LSFLAG = -fsanitize=leak
 
 SRCS = main.c \
-       ft_getopt.c \
+       ft_getopt_r.c \
 	   lib/ft_memcmp.c \
 	   lib/ft_memset.c \
 	   lib/ft_putnbr_base.c \
@@ -58,7 +58,7 @@ endif
 all: compile
 
 $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.c
-	@mkdir -p $(OBJS_DIR)
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 $(NAME): $(MLX_OSX) $(LFT) $(OBJS_PATH)
