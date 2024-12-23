@@ -59,6 +59,30 @@ static int	_handle_sopt_error(
 	return ('?');
 }
 
+static int	_handle_lopt_error(
+			t_ft_getopt_state *state,
+			const char *progname,
+			const t_option *opt,
+			char *s
+)
+{
+	if (state->optstring[0] == ':')
+	{
+		if (!opt)
+			return ('?');
+		return (':');
+	}
+	if (!state->opterr)
+		return ('?');
+	if (!opt)
+		_print_error_lopt(progname, ERR_LOPT_INVALID, s);
+	else if (opt->has_arg == OPT_NO_ARG && state->optarg)
+		_print_error_lopt(progname, ERR_LOPT_ARG_NOT_ALLOWED, s);
+	else
+		_print_error_lopt(progname, ERR_LOPT_ARG_REQUIRED, s);
+	return ('?');
+}
+
 // #include <stdio.h>
 
 static const t_option	*_get_longopt(t_ft_getopt_state *state)
@@ -94,9 +118,6 @@ static int	_handle_long_opt(
 	const t_option	*opt;
 	char			*s;
 
-	(void)argc;
-	(void)argv;
-	(void)longind;
 	state->nextchar++;
 	state->optarg = ft_strchr(state->nextchar, '=');
 	opt = _get_longopt(state);
@@ -104,15 +125,36 @@ static int	_handle_long_opt(
 	state->nextchar = NULL;
 	state->optind++;
 	if (!opt)
-	{
-		_print_error_lopt(argv[0], ERR_LOPT_INVALID, s);
-		return ('?');
-	}
-	ft_putstr_fd(opt->name, 1);
-	ft_putstr_fd("\n", 1);
+		return (_handle_lopt_error(state, argv[0], opt, s));
+	// ft_putstr_fd(opt->name, 1);
+	// ft_putstr_fd("\n", 1);
 	if (state->optarg)
+	{
 		state->optarg++;
-	return ('?');
+		if (opt->has_arg == OPT_NO_ARG)
+			return (_handle_lopt_error(state, argv[0], opt, s));
+	}
+	else
+	{
+		if (opt->has_arg == OPT_REQ_ARG)
+		{
+			if (state->optind < argc)
+			{
+				state->optarg = argv[state->optind];
+				state->optind++;
+			}
+			else
+				return (_handle_lopt_error(state, argv[0], opt, s));
+		}	
+	}
+	if (longind)
+		*longind = opt - state->longopts;
+	if (opt->flag)
+	{
+		*opt->flag = opt->val;
+		return (0);
+	}
+	return (opt->val);
 }
 
 static int	_handle_short_opt(
@@ -177,7 +219,6 @@ int		ft_getopt_long_r(
 	int *longind
 )
 {
-	(void)longind;
 	state->optarg = NULL;
 	if (state->optind >= argc || argv[state->optind][0] != '-' ||
 		(argv[state->optind][0] == '-' && argv[state->optind][1] == '\0'))
