@@ -21,10 +21,12 @@ CFLAGS = -Wall -Wextra -Werror
 
 DFLAGS = -g3 -fsanitize=address
 
-LSFLAG = -fsanitize=leak
+LSFLAG = -g3 -fsanitize=leak
 
 SRCS = main.c \
-       ft_getopt_r.c \
+       parse_elf.c \
+	   symbol.c \
+       ft_getopt/ft_getopt_r.c \
 	   lib/ft_memcmp.c \
 	   lib/ft_memset.c \
 	   lib/ft_putnbr_base.c \
@@ -74,17 +76,19 @@ $(MLX_OSX):
 clean:
 	@echo "Removing" $(NAME) "object files"
 	@/bin/rm -f $(OBJS_PATH)
-	@rmdir $(OBJS_DIR) 2> /dev/null || true
-	@make -C $(LFT_DIR) clean
+	@# @rmdir $(OBJS_DIR) 2> /dev/null || true
+	@find $(OBJS_DIR) -empty -type d -delete
+	@# @make -C $(LFT_DIR) clean
 
 fclean:
 	@echo "Removing" $(NAME) "object files"
 	@/bin/rm -f $(OBJS_PATH)
-	@rmdir $(OBJS_DIR) 2> /dev/null || true
+	@# @ rmdir $(OBJS_DIR) 2> /dev/null || true
+	@find $(OBJS_DIR) -empty -type d -delete
 	@echo "Removing" $(NAME)
-	@/bin/rm -f $(NAME)
-	@make -C $(LFT_DIR) fclean
-	@make -C $(MLX_OSX_DIR) clean
+	@ /bin/rm -f $(NAME)
+	@# @make -C $(LFT_DIR) fclean
+	@# @make -C $(MLX_OSX_DIR) clean
 
 re: fclean all
 

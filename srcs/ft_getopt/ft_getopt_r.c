@@ -1,17 +1,6 @@
 #include "ft_getopt.h"
 #include "lib.h"
 
-// int ft_getopt_r(int argc, char * const *argv, const char *optstring)
-// {
-
-// }
-
-// int ft_getopt_r_long(int argc, char * const *argv, const char *optstring, const struct option *longopts, int *longindex)
-// {
-
-// }
-
-
 static void	_print_error_sopt(const char *progname, const char *err, int opt)
 {
 	ft_putstr_fd(progname, 2);
@@ -83,8 +72,6 @@ static int	_handle_lopt_error(
 	return ('?');
 }
 
-// #include <stdio.h>
-
 static const t_option	*_get_longopt(t_ft_getopt_state *state)
 {
 	size_t			len;
@@ -99,7 +86,6 @@ static const t_option	*_get_longopt(t_ft_getopt_state *state)
 		len = ft_strlen(state->nextchar);
 	while (opts->name)
 	{
-		// printf("%s (%zu) == %s (%zu)\n", state->nextchar, len, opts->name, ft_strlen(opts->name));
 		if (ft_strncmp(opts->name, state->nextchar, len) == 0
 			&& ft_strlen(opts->name) == len)
 			return (opts);
@@ -126,8 +112,6 @@ static int	_handle_long_opt(
 	state->optind++;
 	if (!opt)
 		return (_handle_lopt_error(state, argv[0], opt, s));
-	// ft_putstr_fd(opt->name, 1);
-	// ft_putstr_fd("\n", 1);
 	if (state->optarg)
 	{
 		state->optarg++;
