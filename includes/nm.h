@@ -6,7 +6,7 @@
 /*   By: abemorea <abemorea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 20:09:27 by abemorea          #+#    #+#             */
-/*   Updated: 2024/12/27 20:10:57 by abemorea         ###   ########.fr       */
+/*   Updated: 2024/12/27 20:50:24 by abemorea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,8 @@ typedef struct s_sym
 
 int		is_elf32(void *ptr);
 int		is_elf64(void *ptr);
-int		parse_elf32(t_sym **symlst, void *ptr);
-int		parse_elf64(t_sym **symlst, void *ptr);
+int		parse_elf32(t_sym **symlst, void *ptr, size_t size);
+int		parse_elf64(t_sym **symlst, void *ptr, size_t size);
 
 t_sym	*add_symbol(t_sym **symlst, char *name, void *sym, int sorted);
 void	clear_symbols(t_sym **symlst);

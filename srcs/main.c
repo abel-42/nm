@@ -6,7 +6,7 @@
 /*   By: abemorea <abemorea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/21 18:18:00 by abemorea          #+#    #+#             */
-/*   Updated: 2024/12/27 20:35:48 by abemorea         ###   ########.fr       */
+/*   Updated: 2024/12/27 21:22:56 by abemorea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ int	main(int ac, char **av)
 	struct stat			data;
 	void				*ptr;
 	t_sym				*symlst;
+	int					parsing;
 
 	ft_getopt_initialize_state(&state, "hagurp", long_options());
 	opt = 0;
@@ -101,16 +102,19 @@ int	main(int ac, char **av)
 				ptr = mmap(NULL, data.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 				if (ptr != MAP_FAILED)
 				{
+					parsing = 0;
 					if (is_elf32(ptr))
 					{
 						ft_putstr_fd("ELF32\n", 1);
-						parse_elf32(&symlst, ptr);
-						print_symbols(symlst);
+						parsing = parse_elf32(&symlst, ptr, data.st_size);
 					}
 					else if (is_elf64(ptr))
 					{
 						ft_putstr_fd("ELF64\n", 1);
-						parse_elf64(&symlst, ptr);
+						parsing = parse_elf64(&symlst, ptr, data.st_size);
+					}
+					if (parsing)
+					{
 						print_symbols(symlst);
 					}
 					else
