@@ -17,6 +17,7 @@
 #include <sys/mman.h>
 
 #include <stdio.h>
+#include <sys/resource.h>
 
 static const t_option	*long_options(void)
 {
@@ -58,8 +59,11 @@ void	usage(int fd, const char *progname)
 
 int	main(int ac, char **av)
 {
+	int					ret;
 	t_ft_getopt_state	state;
 	int					opt;
+	char				sort;
+	char				display;
 	char *const			default_files[] = {"a.out", NULL};
 	char *const			*files;
 	int					fd;
@@ -67,7 +71,20 @@ int	main(int ac, char **av)
 	void				*ptr;
 	t_sym				*symlst;
 	int					parsing;
+	size_t				size;
+	int					i;
+	// struct rlimit		limit;
 
+	// limit.rlim_cur = 1024;
+	// limit.rlim_max = 1024;
+	// if (setrlimit(RLIMIT_DATA, &limit) != 0)
+	// {
+	// 	perror("setrlimit failed");
+	// 	return (1);
+	// }
+	ret = 0;
+	sort = 1;
+	display = 0;
 	ft_getopt_initialize_state(&state, "hagurp", long_options());
 	opt = 0;
 	while (opt > -1 && opt != '?')
@@ -75,7 +92,17 @@ int	main(int ac, char **av)
 		opt = ft_getopt_long_r(&state, ac, av, NULL);
 		if (opt > -1 && opt != '?')
 		{
-			printf("opt: %c\n", opt);
+			// printf("opt: %c\n", opt);
+			if (opt == 'a' && display == 0)
+				display = 'a';
+			else if (opt == 'g' && display != 'u')
+				display = 'g';
+			else if (opt == 'u')
+				display = 'u';
+			else  if (opt == 'r' && sort == 1)
+				sort = -1;
+			else if (opt == 'p')
+				sort = 0;
 		}
 		if (opt == 'h')
 		{
@@ -92,9 +119,11 @@ int	main(int ac, char **av)
 	if (!*files)
 		files = default_files;
 	symlst = NULL;
-	while (*files)
+	i = 0;
+	while (files[i])
 	{
-		fd = open(*files, O_RDONLY);
+		parsing = 0;
+		fd = open(files[i], O_RDONLY);
 		if (fd >= 0)
 		{
 			if (fstat(fd, &data) == 0)
@@ -102,40 +131,50 @@ int	main(int ac, char **av)
 				ptr = mmap(NULL, data.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 				if (ptr != MAP_FAILED)
 				{
-					parsing = 0;
+					size = sizeof(uint64_t);
 					if (is_elf32(ptr))
 					{
-						ft_putstr_fd("ELF32\n", 1);
-						parsing = parse_elf32(&symlst, ptr, data.st_size);
+						// ft_putstr_fd("ELF32\n", 1);
+						size = sizeof(uint32_t);
+						parsing = parse_elf32(&symlst, ptr, data.st_size, sort);
 					}
 					else if (is_elf64(ptr))
 					{
-						ft_putstr_fd("ELF64\n", 1);
-						parsing = parse_elf64(&symlst, ptr, data.st_size);
+						// ft_putstr_fd("ELF64\n", 1);
+						parsing = parse_elf64(&symlst, ptr, data.st_size, sort);
 					}
 					if (parsing)
 					{
-						print_symbols(symlst);
-					}
-					else
-					{
-						ft_putstr_fd(av[0], 2);
-						ft_putstr_fd(": ", 2);
-						ft_putstr_fd(*files, 2);
-						ft_putstr_fd(": file format not recognized\n", 2);
+						if (files[1])
+						{
+							ft_putstr_fd("\n", 1);
+							ft_putstr_fd(files[i], 1);
+							ft_putstr_fd(":\n", 1);
+						}
+						print_symbols(symlst, size, display);
 					}
 					clear_symbols(&symlst);
 					munmap(ptr, data.st_size);
-					// files++;
-					// continue ;
 				}
 			}
 			close(fd);
 		}
-		ft_putstr_fd(av[0], 2);
-		ft_putstr_fd(": ", 2);
-		perror(*files);
-		files++;
+		if (errno)
+		{
+			ret = 1;
+			ft_putstr_fd(av[0], 2);
+			ft_putstr_fd(": ", 2);
+			perror(files[i]);
+		}
+		else if (!parsing)
+		{
+			ret = 1;
+			ft_putstr_fd(av[0], 2);
+			ft_putstr_fd(": ", 2);
+			ft_putstr_fd(*files, 2);
+			ft_putstr_fd(": file format not recognized\n", 2);
+		}
+		i++;
 	}
-	return (0);
+	return (ret);
 }

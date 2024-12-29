@@ -17,7 +17,7 @@ SRCS_DIR = srcs
 
 CC = gcc
 
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -g3 -Wall -Wextra -Werror
 
 DFLAGS = -g3 -fsanitize=address
 
@@ -26,12 +26,12 @@ LSFLAG = -g3 -fsanitize=leak
 SRCS = main.c \
        parse_elf.c \
 	   symbol.c \
+	   endian.c \
        ft_getopt/ft_getopt_r.c \
 	   lib/ft_memcmp.c \
 	   lib/ft_memset.c \
 	   lib/ft_putnbr_base.c \
 	   lib/ft_putstr.c \
-	   lib/ft_sort.c \
 	   lib/ft_strchr.c \
 	   lib/ft_strcmp.c \
 	   lib/ft_strlen.c

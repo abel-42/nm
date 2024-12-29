@@ -64,10 +64,10 @@ char	get_symbol_type(uint16_t shndx, uint32_t sh_type, uint64_t sh_flags, unsign
 			return (shndx == SHN_UNDEF ? 'w' : 'W');
 	}
 	if (shndx == SHN_ABS)
-		return (st_bind == STB_LOCAL ? 'a' : 'A');
+		return ('A');
 	if (shndx == SHN_COMMON)
 		return ('C');
-	if (shndx == SHN_MIPS_SCOMMON || (section && ft_strcmp(section, ".scommon") == 0))
+	if (shndx == SHN_MIPS_SCOMMON || ft_strcmp(section, ".scommon") == 0)
 		return ('c');
 	if (shndx == SHN_UNDEF)
 		return ('U');
@@ -90,90 +90,61 @@ char	get_symbol_type(uint16_t shndx, uint32_t sh_type, uint64_t sh_flags, unsign
 	}
 	if (st_type == STT_GNU_IFUNC)
 		return ('i');
-	if (section && ft_strncmp(section, ".debug", 6) == 0)
+	if (ft_strncmp(section, ".debug", 6) == 0)
 		return ('N');
 	if ((sh_flags & SHF_WRITE) == 0)
 		return ('n');
 	return '?';
 }
 
-int	is_special_section_idx(uint16_t shndx)
-{
-	return (shndx == SHN_LOPROC || shndx == SHN_BEFORE || shndx == SHN_AFTER
-		|| shndx == SHN_HIPROC || shndx == SHN_LOOS || shndx == SHN_HIOS
-		|| shndx == SHN_ABS || shndx == SHN_COMMON || shndx == SHN_XINDEX
-		|| shndx == SHN_HIRESERVE);
-}
-
-int parse_elf32(t_sym **symlst, void *ptr, size_t size, char sort)
+int parse_elf32(t_sym **symlst, void *ptr, size_t size)
 {
 	Elf32_Ehdr		*eh;
 	Elf32_Shdr		*sh;
-	Elf32_Shdr		*shstrhdr;
 	Elf32_Shdr		*link;
-	char			*shstrtab;
-	char			*section;
 	char			*strtab;
 	Elf32_Sym		*symtab;
 	size_t			sym_count;
 	size_t      	i;
 	size_t			j;
-	// unsigned char	type;
+	unsigned char	type;
 	int				rev_endian;
 	Elf32_Off      	shoff;
-	uint16_t		shstrndx;
 	uint16_t      	shnum;
-	uint32_t  		sh_name;
 	uint32_t		sh_type;
 	uint32_t		sh_link;
-	uint32_t   		sh_flags;
 	uint32_t		sh_size;
 	uint32_t		sh_entsize;
 	Elf32_Off		sh_offset;
 	Elf32_Off		strtab_offset;
 	uint32_t		strtab_size;
-	uint32_t		shstrtab_size;
+	// uint32_t		strtab_entsize;
 	uint32_t		st_name;
-	uint16_t		st_shndx;
-	Elf32_Addr		st_value;
 	char			*name;
 	t_sym			*symbol;
 
 	eh = (Elf32_Ehdr *)ptr;
 	rev_endian = 0;
-	if (is_host_big_endian() && eh->e_ident[EI_DATA] == ELFDATA2LSB)
+	if (eh->e_ident[EI_DATA] == ELFDATA2LSB)
+		rev_endian = 0;
+	else if (eh->e_ident[EI_DATA] == ELFDATA2MSB)
 		rev_endian = 1;
-	else if (is_host_little_endian() && eh->e_ident[EI_DATA] == ELFDATA2MSB)
-		rev_endian = 1;
+	else
+		return (0);
 	shoff = eh->e_shoff;
-	shstrndx = eh->e_shstrndx;
 	if (rev_endian)
-	{
 		reverse_endian(&shoff, sizeof(shoff));
-		reverse_endian(&shstrndx, sizeof(shstrndx));
-	}
 	sh = (Elf32_Shdr*)(ptr + shoff);
-	shstrhdr = ((Elf32_Shdr*)(ptr + shoff)) + shstrndx;
 	if (eh->e_shnum == 0)
 		shnum = sh->sh_size;
 	else
 		shnum = eh->e_shnum;
 	if (rev_endian)
 		reverse_endian(&shnum, sizeof(shnum));
-	if ((shoff > 0 && shnum == 0) || !is_ptr_valid(sh, sizeof (*sh) * shnum, ptr, size))
-		return (0);
-	sh_offset = shstrhdr->sh_offset;
-	shstrtab_size = shstrhdr->sh_size;
-	if (rev_endian)
-	{
-		reverse_endian(&sh_offset, sizeof(sh_offset));
-		reverse_endian(&shstrtab_size, sizeof(shstrtab_size));
-	}
-	shstrtab = (char*)(ptr + sh_offset);
-	if (!is_ptr_valid(shstrtab, shstrtab_size, ptr, size))
+	if (shoff > 0 && shnum == 0)
 		return (0);
 	i = 0;
-	while (i < shnum)
+	while (i < shnum && is_ptr_valid(sh + i, sizeof (*sh), ptr, size))
 	{
 		sh_type = sh[i].sh_type;
 		sh_link = sh[i].sh_link;
@@ -197,10 +168,12 @@ int parse_elf32(t_sym **symlst, void *ptr, size_t size, char sort)
 				return (0);
 			strtab_offset = link->sh_offset;
 			strtab_size = link->sh_size;
+			// strtab_entsize = link->sh_entsize;
 			if (rev_endian)
 			{
 				reverse_endian(&strtab_offset, sizeof(strtab_offset));
 				reverse_endian(&strtab_size, sizeof(strtab_size));
+				// reverse_endian(&strtab_entsize, sizeof(strtab_entsize));
 			}
 			strtab = (char *)(ptr + strtab_offset);
 			if (!is_ptr_valid(strtab, strtab_size, ptr, size))
@@ -209,58 +182,35 @@ int parse_elf32(t_sym **symlst, void *ptr, size_t size, char sort)
 			sym_count = sh_size / sh_entsize;
 			if (!is_ptr_valid(symtab, sizeof (*symtab) * sym_count, ptr, size))
 				return (0);
-			j = 1;
+			j = 0;
 			while (j < sym_count)
 			{
 				st_name = symtab[j].st_name;
-				st_shndx = symtab[j].st_shndx;
-				st_value = symtab[j].st_value;
 				if (rev_endian)
-				{
 					reverse_endian(&st_name, sizeof(st_name));
-					reverse_endian(&st_shndx, sizeof(st_shndx));
-					reverse_endian(&st_value, sizeof(st_value));
+				type = ELF32_ST_TYPE(symtab[j].st_info);
+				if (st_name == 0 || st_name >= strtab_size || type == STT_FILE)
+				{
+					j++;
+					continue ;
 				}
-				// type = ELF32_ST_TYPE(symtab[j].st_info);
-				if (st_name >= strtab_size)
-					return (0);
+				// printf("%u / %u\n", st_name, strtab_size);
 				name = (char *)(strtab + st_name);
-				symbol = add_symbol(symlst, name, symtab + j, sort);
+				// ft_putstr_fd(name, 1);
+				// ft_putstr_fd("\n", 1);
+				symbol = add_symbol(symlst, name, symtab + j, 1);
 				if (!symbol)
 					return (0);
-				sh_type = 0;
-				sh_flags = 0;
-				section = NULL;
-				if (st_shndx > 0 && st_shndx < shnum)
-				{
-					sh_type = sh[st_shndx].sh_type;
-					sh_flags = sh[st_shndx].sh_flags;
-					sh_name = sh[st_shndx].sh_name;
-					if (rev_endian)
-					{
-						reverse_endian(&sh_type, sizeof(sh_type));
-						reverse_endian(&sh_flags, sizeof(sh_flags));
-						reverse_endian(&sh_name, sizeof(sh_name));
-					}
-					if (shstrtab_size > sh_name)
-						section = (char *)(shstrtab + sh_name);
-				}
-				symbol->type = get_symbol_type(st_shndx, sh_type, sh_flags, ELF32_ST_TYPE(symtab[j].st_info), ELF32_ST_BIND(symtab[j].st_info), section);
-				symbol->undef = st_shndx == SHN_UNDEF;
-				symbol->debug_only = 0;
-				if (is_special_section_idx(st_shndx) && ELF32_ST_TYPE(symtab[j].st_info) != STT_SECTION)
-					symbol->debug_only = 1;
-				symbol->local = ELF32_ST_BIND(symtab[j].st_info) == STB_LOCAL;
-				symbol->value = (uint64_t)st_value;
+				// symbol->type = get_symbol_type()
 				j++;
 			}
 		}
 		i++;
 	}
-	return (1);
+	return (i >= shnum);
 }
 
-int	parse_elf64(t_sym **symlst, void *ptr, size_t size, char sort)
+int	parse_elf64(t_sym **symlst, void *ptr, size_t size)
 {
 	Elf64_Ehdr		*eh;
 	Elf64_Shdr		*sh;
@@ -273,12 +223,10 @@ int	parse_elf64(t_sym **symlst, void *ptr, size_t size, char sort)
 	size_t			sym_count;
 	size_t      	i;
 	size_t			j;
-	// unsigned char	type;
+	unsigned char	type;
 	int				rev_endian;
 	Elf64_Off      	shoff;
-	uint16_t		shstrndx;
 	uint16_t      	shnum;
-	uint32_t  		sh_name;
 	uint32_t		sh_type;
 	uint32_t		sh_link;
 	uint64_t   		sh_flags;
@@ -287,7 +235,6 @@ int	parse_elf64(t_sym **symlst, void *ptr, size_t size, char sort)
 	Elf64_Off		sh_offset;
 	Elf64_Off		strtab_offset;
 	uint64_t		strtab_size;
-	uint64_t		shstrtab_size;
 	uint32_t		st_name;
 	uint16_t		st_shndx;
 	Elf64_Addr		st_value;
@@ -300,44 +247,39 @@ int	parse_elf64(t_sym **symlst, void *ptr, size_t size, char sort)
 		rev_endian = 1;
 	else if (is_host_little_endian() && eh->e_ident[EI_DATA] == ELFDATA2MSB)
 		rev_endian = 1;
+	else
+		return (0);
 	shoff = eh->e_shoff;
-	shstrndx = eh->e_shstrndx;
 	if (rev_endian)
-	{
 		reverse_endian(&shoff, sizeof(shoff));
-		reverse_endian(&shstrndx, sizeof(shstrndx));
-	}
 	sh = (Elf64_Shdr*)(ptr + shoff);
-	shstrhdr = ((Elf64_Shdr*)(ptr + shoff)) + shstrndx;
 	if (eh->e_shnum == 0)
 		shnum = sh->sh_size;
 	else
 		shnum = eh->e_shnum;
 	if (rev_endian)
 		reverse_endian(&shnum, sizeof(shnum));
-	if ((shoff > 0 && shnum == 0) || !is_ptr_valid(sh, sizeof (*sh) * shnum, ptr, size))
+	if (shoff > 0 && shnum == 0)
 		return (0);
-	sh_offset = shstrhdr->sh_offset;
-	shstrtab_size = shstrhdr->sh_size;
-	if (rev_endian)
-	{
-		reverse_endian(&sh_offset, sizeof(sh_offset));
-		reverse_endian(&shstrtab_size, sizeof(shstrtab_size));
-	}
-	shstrtab = (char*)(ptr + sh_offset);
-	if (!is_ptr_valid(shstrtab, shstrtab_size, ptr, size))
-		return (0);
+	shstrhdr = ((Elf64_Shdr*)(ptr + eh->e_shoff)) + eh->e_shstrndx;
+	shstrtab = (char*)(ptr + shstrhdr->sh_offset);
 	i = 0;
-	while (i < shnum)
+	while (i < shnum && is_ptr_valid(sh + i, sizeof (*sh), ptr, size))
 	{
+		// section = (char *)(shstrtab + sh[i].sh_name);
+		// ft_putstr_fd(sec_name, 1);
+		// ft_putstr_fd("\n", 1);
 		sh_type = sh[i].sh_type;
 		sh_link = sh[i].sh_link;
+		// sh_flags = sh[i].sh_flags;
 		sh_size = sh[i].sh_size;
 		sh_entsize = sh[i].sh_entsize;
 		sh_offset = sh[i].sh_offset;
 		if (rev_endian)
 		{
+			// reverse_endian(&sh_type, sizeof(sh_type));
 			reverse_endian(&sh_link, sizeof(sh_link));
+			// reverse_endian(&sh_flags, sizeof(sh_flags));
 			reverse_endian(&sh_size, sizeof(sh_size));
 			reverse_endian(&sh_entsize, sizeof(sh_entsize));
 			reverse_endian(&sh_offset, sizeof(sh_offset));
@@ -351,10 +293,12 @@ int	parse_elf64(t_sym **symlst, void *ptr, size_t size, char sort)
 				return (0);
 			strtab_offset = link->sh_offset;
 			strtab_size = link->sh_size;
+			// strtab_entsize = link->sh_entsize;
 			if (rev_endian)
 			{
 				reverse_endian(&strtab_offset, sizeof(strtab_offset));
 				reverse_endian(&strtab_size, sizeof(strtab_size));
+				// reverse_endian(&strtab_entsize, sizeof(strtab_entsize));
 			}
 			strtab = (char *)(ptr + strtab_offset);
 			if (!is_ptr_valid(strtab, strtab_size, ptr, size))
@@ -363,7 +307,7 @@ int	parse_elf64(t_sym **symlst, void *ptr, size_t size, char sort)
 			sym_count = sh_size / sh_entsize;
 			if (!is_ptr_valid(symtab, sizeof (*symtab) * sym_count, ptr, size))
 				return (0);
-			j = 1;
+			j = 0;
 			while (j < sym_count)
 			{
 				st_name = symtab[j].st_name;
@@ -375,41 +319,34 @@ int	parse_elf64(t_sym **symlst, void *ptr, size_t size, char sort)
 					reverse_endian(&st_shndx, sizeof(st_shndx));
 					reverse_endian(&st_value, sizeof(st_value));
 				}
-				// type = ELF64_ST_TYPE(symtab[j].st_info);
-				if (st_name >= strtab_size)
-					return (0);
+				type = ELF64_ST_TYPE(symtab[j].st_info);
+				if (st_name == 0 || st_name >= strtab_size || type == STT_FILE)
+				{
+					j++;
+					continue ;
+				}
+				// printf("%u / %u\n", st_name, strtab_size);
 				name = (char *)(strtab + st_name);
-				symbol = add_symbol(symlst, name, symtab + j, sort);
+				// ft_putstr_fd(name, 1);
+				// ft_putstr_fd("\n", 1);
+				symbol = add_symbol(symlst, name, symtab + j, 1);
 				if (!symbol)
 					return (0);
 				sh_type = 0;
 				sh_flags = 0;
-				section = NULL;
+				section = "";
 				if (st_shndx > 0 && st_shndx < shnum)
 				{
 					sh_type = sh[st_shndx].sh_type;
 					sh_flags = sh[st_shndx].sh_flags;
-					sh_name = sh[st_shndx].sh_name;
-					if (rev_endian)
-					{
-						reverse_endian(&sh_type, sizeof(sh_type));
-						reverse_endian(&sh_flags, sizeof(sh_flags));
-						reverse_endian(&sh_name, sizeof(sh_name));
-					}
-					if (shstrtab_size > sh_name)
-						section = (char *)(shstrtab + sh_name);
+					section = (char *)(shstrtab + sh[st_shndx].sh_name);
 				}
 				symbol->type = get_symbol_type(st_shndx, sh_type, sh_flags, ELF64_ST_TYPE(symtab[j].st_info), ELF64_ST_BIND(symtab[j].st_info), section);
-				symbol->undef = st_shndx == SHN_UNDEF;
-				symbol->debug_only = 0;
-				if (is_special_section_idx(st_shndx) && ELF64_ST_TYPE(symtab[j].st_info) != STT_SECTION)
-					symbol->debug_only = 1;
-				symbol->local = ELF64_ST_BIND(symtab[j].st_info) == STB_LOCAL;
 				symbol->value = (uint64_t)st_value;
 				j++;
 			}
 		}
 		i++;
 	}
-	return (1);
+	return (i >= shnum);
 }
