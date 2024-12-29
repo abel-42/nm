@@ -248,7 +248,7 @@ int parse_elf32(t_sym **symlst, void *ptr, size_t size, char sort)
 				symbol->type = get_symbol_type(st_shndx, sh_type, sh_flags, ELF32_ST_TYPE(symtab[j].st_info), ELF32_ST_BIND(symtab[j].st_info), section);
 				symbol->undef = st_shndx == SHN_UNDEF;
 				symbol->debug_only = 0;
-				if (is_special_section_idx(st_shndx) && ELF32_ST_TYPE(symtab[j].st_info) != STT_SECTION)
+				if (is_special_section_idx(st_shndx) || ELF32_ST_TYPE(symtab[j].st_info) == STT_SECTION)
 					symbol->debug_only = 1;
 				symbol->local = ELF32_ST_BIND(symtab[j].st_info) == STB_LOCAL;
 				symbol->value = (uint64_t)st_value;
@@ -402,7 +402,7 @@ int	parse_elf64(t_sym **symlst, void *ptr, size_t size, char sort)
 				symbol->type = get_symbol_type(st_shndx, sh_type, sh_flags, ELF64_ST_TYPE(symtab[j].st_info), ELF64_ST_BIND(symtab[j].st_info), section);
 				symbol->undef = st_shndx == SHN_UNDEF;
 				symbol->debug_only = 0;
-				if (is_special_section_idx(st_shndx) && ELF64_ST_TYPE(symtab[j].st_info) != STT_SECTION)
+				if (is_special_section_idx(st_shndx) || ELF64_ST_TYPE(symtab[j].st_info) == STT_SECTION)
 					symbol->debug_only = 1;
 				symbol->local = ELF64_ST_BIND(symtab[j].st_info) == STB_LOCAL;
 				symbol->value = (uint64_t)st_value;

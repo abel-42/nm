@@ -17,7 +17,7 @@ SRCS_DIR = srcs
 
 CC = gcc
 
-CFLAGS = -g3 -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror
 
 DFLAGS = -g3 -fsanitize=address
 

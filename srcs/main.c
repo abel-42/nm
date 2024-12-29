@@ -145,13 +145,24 @@ int	main(int ac, char **av)
 					}
 					if (parsing)
 					{
-						if (files[1])
+						if (symlst)
 						{
-							ft_putstr_fd("\n", 1);
-							ft_putstr_fd(files[i], 1);
-							ft_putstr_fd(":\n", 1);
+							if (files[1])
+							{
+								ft_putstr_fd("\n", 1);
+								ft_putstr_fd(files[i], 1);
+								ft_putstr_fd(":\n", 1);
+							}
+							print_symbols(symlst, size, display);
 						}
-						print_symbols(symlst, size, display);
+						else
+						{
+							ret = 1;
+							ft_putstr_fd(av[0], 2);
+							ft_putstr_fd(": ", 2);
+							ft_putstr_fd(files[i], 2);
+							ft_putstr_fd(": no symbols\n", 2);
+						}
 					}
 					clear_symbols(&symlst);
 					munmap(ptr, data.st_size);
@@ -171,7 +182,7 @@ int	main(int ac, char **av)
 			ret = 1;
 			ft_putstr_fd(av[0], 2);
 			ft_putstr_fd(": ", 2);
-			ft_putstr_fd(*files, 2);
+			ft_putstr_fd(files[i], 2);
 			ft_putstr_fd(": file format not recognized\n", 2);
 		}
 		i++;
