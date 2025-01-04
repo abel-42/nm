@@ -6,7 +6,7 @@
 /*   By: abemorea <abemorea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 19:03:06 by abemorea          #+#    #+#             */
-/*   Updated: 2024/12/27 21:44:31 by abemorea         ###   ########.fr       */
+/*   Updated: 2025/01/04 15:42:22 by abemorea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -246,9 +246,11 @@ int parse_elf32(t_sym **symlst, void *ptr, size_t size, char sort)
 							name = section;
 					}
 				}
-				symbol = add_symbol(symlst, name, symtab + j, sort);
+				symbol = (t_sym *)malloc(sizeof (t_sym));
 				if (!symbol)
 					return (0);
+				ft_memset(symbol, 0, sizeof (t_sym));
+				symbol->name = name;
 				symbol->type = get_symbol_type(st_shndx, sh_type, sh_flags, ELF32_ST_TYPE(symtab[j].st_info), ELF32_ST_BIND(symtab[j].st_info), section);
 				symbol->undef = st_shndx == SHN_UNDEF;
 				symbol->debug_only = 0;
@@ -256,6 +258,7 @@ int parse_elf32(t_sym **symlst, void *ptr, size_t size, char sort)
 					symbol->debug_only = 1;
 				symbol->local = ELF32_ST_BIND(symtab[j].st_info) == STB_LOCAL;
 				symbol->value = (uint64_t)st_value;
+				add_symbol(symlst, symbol, sort);
 				j++;
 			}
 		}
@@ -404,9 +407,11 @@ int	parse_elf64(t_sym **symlst, void *ptr, size_t size, char sort)
 							name = section;
 					}
 				}
-				symbol = add_symbol(symlst, name, symtab + j, sort);
+				symbol = (t_sym *)malloc(sizeof (t_sym));
 				if (!symbol)
 					return (0);
+				ft_memset(symbol, 0, sizeof (t_sym));
+				symbol->name = name;
 				symbol->type = get_symbol_type(st_shndx, sh_type, sh_flags, ELF64_ST_TYPE(symtab[j].st_info), ELF64_ST_BIND(symtab[j].st_info), section);
 				symbol->undef = st_shndx == SHN_UNDEF;
 				symbol->debug_only = 0;
@@ -414,6 +419,7 @@ int	parse_elf64(t_sym **symlst, void *ptr, size_t size, char sort)
 					symbol->debug_only = 1;
 				symbol->local = ELF64_ST_BIND(symtab[j].st_info) == STB_LOCAL;
 				symbol->value = (uint64_t)st_value;
+				add_symbol(symlst, symbol, sort);
 				j++;
 			}
 		}

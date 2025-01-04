@@ -34,7 +34,9 @@ SRCS = main.c \
 	   lib/ft_putstr.c \
 	   lib/ft_strchr.c \
 	   lib/ft_strcmp.c \
-	   lib/ft_strlen.c
+	   lib/ft_strlen.c \
+	   lib/ft_isalnum.c \
+	   lib/ft_tolower.c
 
 OBJS = $(SRCS:.c=.o)
 

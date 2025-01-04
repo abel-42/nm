@@ -6,48 +6,65 @@
 /*   By: abemorea <abemorea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 20:01:36 by abemorea          #+#    #+#             */
-/*   Updated: 2024/12/27 20:22:47 by abemorea         ###   ########.fr       */
+/*   Updated: 2025/01/04 15:56:57 by abemorea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "nm.h"
-#include <stdlib.h>
 
-static int	symbol_cmp(const char *s1, const char *s2)
+static int	symbol_cmp(t_sym *sym1, t_sym *sym2)
 {
-	return ft_strcmp(s1, s2);
+	int		diff;
+	size_t	i;
+	size_t	j;
+
+	i = 0;
+	j = 0;
+	while (1)
+	{
+		while (sym1->name[i] && !ft_isalnum(sym1->name[i]))
+			i++;
+		while (sym2->name[j] && !ft_isalnum(sym2->name[j]))
+			j++;
+		if (!(sym1->name[i] && sym2->name[j] && ft_tolower(sym1->name[i]) == ft_tolower(sym2->name[j])))
+			break;
+		i++;
+		j++;
+	}
+	if ((diff = (unsigned char)ft_tolower(sym1->name[i]) - (unsigned char)ft_tolower(sym2->name[j])))
+		return (diff);
+	if ((diff = ft_strcmp(sym1->name, sym2->name)))
+		return (diff);
+	if (sym1->value < sym2->value)
+		return (-1);
+	if (sym2->value < sym1->value)
+		return (1);
+	return (0);
 }
 
-t_sym		*add_symbol(t_sym **symlst, char *name, void *sym, int sorted)
+void	add_symbol(t_sym **symlst, t_sym *sym, int sorted)
 {
-	t_sym	*new;
 	t_sym	*it;
 
-	new = (t_sym *)malloc(sizeof (t_sym));
-	if (!new)
-		return (NULL);
-	ft_memset(new, 0, sizeof(t_sym));
-	new->name = name;
-	new->sym = sym;
-	if (!*symlst || (sorted > 0 && symbol_cmp(name, (*symlst)->name) < 0) || (sorted < 0 && symbol_cmp(name, (*symlst)->name) > 0))
+	if (!*symlst || (sorted > 0 && symbol_cmp(sym, *symlst) < 0) || (sorted < 0 && symbol_cmp(sym, *symlst) > 0))
 	{
-		new->next = *symlst;
-		*symlst = new;
-		return (new);
+		sym->next = *symlst;
+		*symlst = sym;
+		return ;
 	}
 	it = *symlst;
 	while (it->next)
 	{
-		if ((sorted > 0 && symbol_cmp(name, it->next->name) < 0) || (sorted < 0 && symbol_cmp(name, it->next->name) > 0))
+		if ((sorted > 0 && symbol_cmp(sym, it->next) < 0) || (sorted < 0 && symbol_cmp(sym, it->next) > 0))
 		{
-			new->next = it->next;
-			it->next = new;
-			return (new);
+			sym->next = it->next;
+			it->next = sym;
+			return ;
 		}
 		it = it->next;
 	}
-	it->next = new;
-	return (new);
+	it->next = sym;
+	return ;
 }
 
 void		clear_symbols(t_sym **symlst)
