@@ -6,7 +6,7 @@
 /*   By: abemorea <abemorea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/21 18:18:00 by abemorea          #+#    #+#             */
-/*   Updated: 2024/12/27 21:22:56 by abemorea         ###   ########.fr       */
+/*   Updated: 2025/01/04 16:04:38 by abemorea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,6 @@ int	main(int ac, char **av)
 		opt = ft_getopt_long_r(&state, ac, av, NULL);
 		if (opt > -1 && opt != '?')
 		{
-			// printf("opt: %c\n", opt);
 			if (opt == 'a' && display == 0)
 				display = 'a';
 			else if (opt == 'g' && display != 'u')
@@ -134,15 +133,11 @@ int	main(int ac, char **av)
 					size = sizeof(uint64_t);
 					if (is_elf32(ptr))
 					{
-						// ft_putstr_fd("ELF32\n", 1);
 						size = sizeof(uint32_t);
 						parsing = parse_elf32(&symlst, ptr, data.st_size, sort);
 					}
 					else if (is_elf64(ptr))
-					{
-						// ft_putstr_fd("ELF64\n", 1);
 						parsing = parse_elf64(&symlst, ptr, data.st_size, sort);
-					}
 					if (parsing)
 					{
 						if (symlst)

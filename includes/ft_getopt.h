@@ -6,7 +6,7 @@
 /*   By: abemorea <abemorea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/20 17:05:12 by abemorea          #+#    #+#             */
-/*   Updated: 2024/12/23 19:53:46 by abemorea         ###   ########.fr       */
+/*   Updated: 2025/01/04 16:01:45 by abemorea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,12 +43,10 @@ typedef struct s_ft_getopt_state {
 	char *const		*argv;
 	const char		*optstring;
 	const t_option	*longopts;
-	// int				*longind;
 }	t_ft_getopt_state;
 
 void	ft_getopt_initialize_state(
 			t_ft_getopt_state *state,
-			// int argc, char *const argv,
 			const char *optstring,
 			const t_option *longopts
 );

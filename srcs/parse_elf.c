@@ -6,7 +6,7 @@
 /*   By: abemorea <abemorea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 19:03:06 by abemorea          #+#    #+#             */
-/*   Updated: 2025/01/04 15:42:22 by abemorea         ###   ########.fr       */
+/*   Updated: 2025/01/04 16:07:36 by abemorea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,26 +31,13 @@ int	is_elf64(void *ptr)
 	return (ft_memcmp(ptr, sig, sig_size) == 0);
 }
 
-#include <stdio.h>
-
 static int	is_ptr_valid(void *ptr, size_t size, void *memstart, size_t memsize)
 {
 	void	*limit;
 
 	limit = (char *)(memstart + memsize);
-	// printf("start: %p\n", start);
-	// printf("size: %zu\n", size);
-	// printf("ptr:%p\n", ptr);
-	// printf("limit: %p\n", limit);
 	return (ptr >= memstart && ptr + size <= limit);
 }
-
-// static void	*ignore_endian(void *ptr, size_t size)
-// {
-// 	(void)ptr;
-// 	(void)size;
-// 	return (ptr);
-// }
 
 char	get_symbol_type(uint16_t shndx, uint32_t sh_type, uint64_t sh_flags, unsigned char st_type, unsigned char st_bind, char *section)
 {
@@ -76,7 +63,6 @@ char	get_symbol_type(uint16_t shndx, uint32_t sh_type, uint64_t sh_flags, unsign
 		if (sh_flags == (SHF_WRITE | SHF_ALLOC))
 			return (st_bind == STB_LOCAL ? 'b' : 'B');
 	}
-	// printf("%u == %u, %u %s\n", sh_type, SHT_PROGBITS, SHT_NOBITS, section);
 	if (sh_type == SHT_PROGBITS || sh_type == SHT_DYNAMIC || sh_type == SHT_NOTE || sh_type == SHT_INIT_ARRAY || sh_type == SHT_FINI_ARRAY)
 	{
 		if (sh_flags & SHF_ALLOC)
@@ -118,7 +104,6 @@ int parse_elf32(t_sym **symlst, void *ptr, size_t size, char sort)
 	size_t			sym_count;
 	size_t      	i;
 	size_t			j;
-	// unsigned char	type;
 	int				rev_endian;
 	Elf32_Off      	shoff;
 	uint16_t		shstrndx;
@@ -221,7 +206,6 @@ int parse_elf32(t_sym **symlst, void *ptr, size_t size, char sort)
 					reverse_endian(&st_shndx, sizeof(st_shndx));
 					reverse_endian(&st_value, sizeof(st_value));
 				}
-				// type = ELF32_ST_TYPE(symtab[j].st_info);
 				if (st_name >= strtab_size)
 					return (0);
 				name = (char *)(strtab + st_name);
@@ -280,7 +264,6 @@ int	parse_elf64(t_sym **symlst, void *ptr, size_t size, char sort)
 	size_t			sym_count;
 	size_t      	i;
 	size_t			j;
-	// unsigned char	type;
 	int				rev_endian;
 	Elf64_Off      	shoff;
 	uint16_t		shstrndx;
@@ -382,7 +365,6 @@ int	parse_elf64(t_sym **symlst, void *ptr, size_t size, char sort)
 					reverse_endian(&st_shndx, sizeof(st_shndx));
 					reverse_endian(&st_value, sizeof(st_value));
 				}
-				// type = ELF64_ST_TYPE(symtab[j].st_info);
 				if (st_name >= strtab_size)
 					return (0);
 				name = (char *)(strtab + st_name);
