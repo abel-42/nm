@@ -13,7 +13,12 @@
 #include "nm.h"
 #include <stdlib.h>
 
-t_sym	*add_symbol(t_sym **symlst, char *name, void *sym, int sorted)
+static int	symbol_cmp(const char *s1, const char *s2)
+{
+	return ft_strcmp(s1, s2);
+}
+
+t_sym		*add_symbol(t_sym **symlst, char *name, void *sym, int sorted)
 {
 	t_sym	*new;
 	t_sym	*it;
@@ -24,7 +29,7 @@ t_sym	*add_symbol(t_sym **symlst, char *name, void *sym, int sorted)
 	ft_memset(new, 0, sizeof(t_sym));
 	new->name = name;
 	new->sym = sym;
-	if (!*symlst || (sorted > 0 && ft_strcmp(name, (*symlst)->name) < 0) || (sorted < 0 && ft_strcmp(name, (*symlst)->name) > 0))
+	if (!*symlst || (sorted > 0 && symbol_cmp(name, (*symlst)->name) < 0) || (sorted < 0 && symbol_cmp(name, (*symlst)->name) > 0))
 	{
 		new->next = *symlst;
 		*symlst = new;
@@ -33,7 +38,7 @@ t_sym	*add_symbol(t_sym **symlst, char *name, void *sym, int sorted)
 	it = *symlst;
 	while (it->next)
 	{
-		if ((sorted > 0 && ft_strcmp(name, it->next->name) < 0) || (sorted < 0 && ft_strcmp(name, it->next->name) > 0))
+		if ((sorted > 0 && symbol_cmp(name, it->next->name) < 0) || (sorted < 0 && symbol_cmp(name, it->next->name) > 0))
 		{
 			new->next = it->next;
 			it->next = new;
@@ -45,7 +50,7 @@ t_sym	*add_symbol(t_sym **symlst, char *name, void *sym, int sorted)
 	return (new);
 }
 
-void	clear_symbols(t_sym **symlst)
+void		clear_symbols(t_sym **symlst)
 {
 	t_sym	*it;
 	t_sym	*next;
@@ -75,15 +80,6 @@ static size_t	count_digit(uint64_t n, unsigned int base)
 	}
 	return (count);
 }
-
-// static void	print_padding(char c, size_t len)
-// {
-// 	while (len > 0)
-// 	{
-// 		write(1, &c, 1);
-// 		len--;
-// 	}
-// }
 
 void	print_symbols(t_sym *symlst, size_t len, char option)
 {

@@ -225,9 +225,6 @@ int parse_elf32(t_sym **symlst, void *ptr, size_t size, char sort)
 				if (st_name >= strtab_size)
 					return (0);
 				name = (char *)(strtab + st_name);
-				symbol = add_symbol(symlst, name, symtab + j, sort);
-				if (!symbol)
-					return (0);
 				sh_type = 0;
 				sh_flags = 0;
 				section = NULL;
@@ -243,8 +240,15 @@ int parse_elf32(t_sym **symlst, void *ptr, size_t size, char sort)
 						reverse_endian(&sh_name, sizeof(sh_name));
 					}
 					if (shstrtab_size > sh_name)
+					{
 						section = (char *)(shstrtab + sh_name);
+						if (ELF32_ST_TYPE(symtab[j].st_info) == STT_SECTION)
+							name = section;
+					}
 				}
+				symbol = add_symbol(symlst, name, symtab + j, sort);
+				if (!symbol)
+					return (0);
 				symbol->type = get_symbol_type(st_shndx, sh_type, sh_flags, ELF32_ST_TYPE(symtab[j].st_info), ELF32_ST_BIND(symtab[j].st_info), section);
 				symbol->undef = st_shndx == SHN_UNDEF;
 				symbol->debug_only = 0;
@@ -379,9 +383,6 @@ int	parse_elf64(t_sym **symlst, void *ptr, size_t size, char sort)
 				if (st_name >= strtab_size)
 					return (0);
 				name = (char *)(strtab + st_name);
-				symbol = add_symbol(symlst, name, symtab + j, sort);
-				if (!symbol)
-					return (0);
 				sh_type = 0;
 				sh_flags = 0;
 				section = NULL;
@@ -397,8 +398,15 @@ int	parse_elf64(t_sym **symlst, void *ptr, size_t size, char sort)
 						reverse_endian(&sh_name, sizeof(sh_name));
 					}
 					if (shstrtab_size > sh_name)
+					{
 						section = (char *)(shstrtab + sh_name);
+						if (ELF64_ST_TYPE(symtab[j].st_info) == STT_SECTION)
+							name = section;
+					}
 				}
+				symbol = add_symbol(symlst, name, symtab + j, sort);
+				if (!symbol)
+					return (0);
 				symbol->type = get_symbol_type(st_shndx, sh_type, sh_flags, ELF64_ST_TYPE(symtab[j].st_info), ELF64_ST_BIND(symtab[j].st_info), section);
 				symbol->undef = st_shndx == SHN_UNDEF;
 				symbol->debug_only = 0;
