@@ -6,7 +6,7 @@
 /*   By: abemorea <abemorea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/27 19:03:06 by abemorea          #+#    #+#             */
-/*   Updated: 2025/01/04 16:07:36 by abemorea         ###   ########.fr       */
+/*   Updated: 2025/01/04 16:20:17 by abemorea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,21 +63,18 @@ char	get_symbol_type(uint16_t shndx, uint32_t sh_type, uint64_t sh_flags, unsign
 		if (sh_flags == (SHF_WRITE | SHF_ALLOC))
 			return (st_bind == STB_LOCAL ? 'b' : 'B');
 	}
-	if (sh_type == SHT_PROGBITS || sh_type == SHT_DYNAMIC || sh_type == SHT_NOTE || sh_type == SHT_INIT_ARRAY || sh_type == SHT_FINI_ARRAY)
-	{
-		if (sh_flags & SHF_ALLOC)
-		{
-			if (sh_flags & SHF_WRITE)
-				return (st_bind == STB_LOCAL ? 'd' : 'D');
-			if (sh_flags & SHF_EXECINSTR)
-				return (st_bind == STB_LOCAL ? 't' : 'T');
-			return (st_bind == STB_LOCAL ? 'r' : 'R');
-		}
-	}
 	if (st_type == STT_GNU_IFUNC)
 		return ('i');
 	if (section && ft_strncmp(section, ".debug", 6) == 0)
 		return ('N');
+	if (sh_flags & SHF_ALLOC)
+	{
+		if (sh_flags & SHF_WRITE)
+			return (st_bind == STB_LOCAL ? 'd' : 'D');
+		if (sh_flags & SHF_EXECINSTR)
+			return (st_bind == STB_LOCAL ? 't' : 'T');
+		return (st_bind == STB_LOCAL ? 'r' : 'R');
+	}
 	if ((sh_flags & SHF_WRITE) == 0)
 		return ('n');
 	return '?';
